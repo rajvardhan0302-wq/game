@@ -1,54 +1,49 @@
 import streamlit as st
 import random
+import time
 
-# Word list
-words = ["python", "apple", "computer", "game", "streamlit"]
+st.set_page_config(page_title="Car Racing Game", page_icon="🚗")
 
-# Initialize session state
-if "word" not in st.session_state:
-    st.session_state.word = random.choice(words)
-    st.session_state.guessed = []
-    st.session_state.lives = 6
+# Initialize game state
+if "position" not in st.session_state:
+    st.session_state.position = 0
+    st.session_state.score = 0
+    st.session_state.game_over = False
 
-st.title("🎯 Simple Word Guessing Game")
+st.title("🚗 Simple Car Racing Game")
 
-# Display word
-display_word = ""
-for letter in st.session_state.word:
-    if letter in st.session_state.guessed:
-        display_word += letter + " "
-    else:
-        display_word += "_ "
+# Road display
+road = ["⬜"] * 10
+car_index = min(st.session_state.position, 9)
+road[car_index] = "🚗"
 
-st.subheader(display_word)
-st.write("❤️ Lives left:", st.session_state.lives)
+st.write("### Road")
+st.write(" ".join(road))
 
-# Input
-guess = st.text_input("Enter a letter", max_chars=1)
+# Obstacle
+obstacle_pos = random.randint(4, 9)
+st.write(f"🚧 Obstacle at position {obstacle_pos}")
 
-if st.button("Guess"):
-    if guess:
-        if guess in st.session_state.guessed:
-            st.warning("Already guessed!")
-        elif guess in st.session_state.word:
-            st.success("Correct guess!")
-            st.session_state.guessed.append(guess)
-        else:
-            st.error("Wrong guess!")
-            st.session_state.guessed.append(guess)
-            st.session_state.lives -= 1
+# Buttons
+col1, col2 = st.columns(2)
 
-# Win condition
-if all(letter in st.session_state.guessed for letter in st.session_state.word):
-    st.balloons()
-    st.success(f"🎉 You won! Word was **{st.session_state.word}**")
+with col1:
+    if st.button("⬆️ Accelerate") and not st.session_state.game_over:
+        st.session_state.position += 1
+        st.session_state.score += 10
 
-# Lose condition
-if st.session_state.lives == 0:
-    st.error(f"💀 Game Over! Word was **{st.session_state.word}**")
+        if st.session_state.position == obstacle_pos:
+            st.session_state.game_over = True
 
-# Restart button
-if st.button("Restart Game"):
-    st.session_state.word = random.choice(words)
-    st.session_state.guessed = []
-    st.session_state.lives = 6
+with col2:
+    if st.button("🔄 Restart"):
+        st.session_state.position = 0
+        st.session_state.score = 0
+        st.session_state.game_over = False
+
+# Game status
+st.write("### Score:", st.session_state.score)
+
+if st.session_state.game_over:
+    st.error("💥 Crash! Game Over")
+
